@@ -1,0 +1,367 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Page Changer</title> <!-- by Dan Zen 2014 - http://danzen.com - free to modify -->
+
+<link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+
+<!-- for Google -->
+<meta name="description" content="Describe App" />
+<meta name="keywords" content="keyword 1, keyword 2" />    
+<meta name="author" content="App Creator" />
+<meta name="copyright" content="App Company" />
+
+<!-- for Facebook -->          
+<meta property="og:title" content="App Title" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="url_to-image_for_facebook" />
+<meta property="og:url" content="url_of_app" />
+<meta property="og:description" content="Describe App - shows in share" />
+
+<!-- for Twitter -->          
+<meta name="twitter:card" content="summary" /> <!-- do not edit this line (must say "summary") -->
+<meta name="twitter:title" content="App Title" />
+<meta name="twitter:description" content="Describe App - shows on Twitter" />
+<meta name="twitter:image" content="url_to-image" />
+
+<!-- for Apple -->
+<!-- found user-scalable=no worked best for full screen auto scaling -->
+<meta name="viewport" content="user-scalable=no, minimal-ui" />
+<!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimal-ui" />-->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon-precomposed" href="url_to_icon_57x57" />
+
+<script>var zon = true; // true for comments from zim code</script>
+<script src="http://d309knd7es5f10.cloudfront.net/zim_1.2.js"></script>
+<style>
+	body {margin:0px; padding:0px; background-color:#000;}
+	#myCanvas {position:absolute; background-color:#FFF;}
+</style>
+
+<!-- include the complete createJS suite
+or can go to createjs.com for individual code 
+
+EaselJS - working with Canvas - drawing and objects
+TweenJS - animation with code
+SoundJS - working with Sound
+PreloadJS - preload images to work with
+
+-->
+
+<script src="http://code.createjs.com/createjs-2014.12.12.min.js"></script>
+
+<script>
+
+// ------------------   TOP TEMPLATE  ------------------ (APP STARTS AT START APP)
+
+// SCALING OPTIONS
+// "none"		no scaling and uses the stageW and stageH dimensions
+// "fit"		scales canvas dimensions to fit inside window size
+// "outside"	scales canvas dimensions to fit outside window size
+// "full"		no scaling, just sets canvas to window size 
+// for full, the stageW and stageH will be automatically adjusted
+// this means you can put any values you want for the variables below
+// for all the others, the stageW and stageH do not change
+// and will be the values you put beneath
+
+// COMBINED
+// you can combine full and fit - set scaling to full 
+// then put a createjs Container with bounds set as your "workArea" 
+// then zim.fit(workArea, 0,0,stageW,stageH);
+// all your dimensions will be relative to the workArea bounds
+// yet your content will be able to go everywhere on the screen
+// there will be no bounding edges like in fit scaling mode
+
+// WARNING
+// have found that on mobile apple in full mode 
+// we need to set the viewport to content="user-scalable=no" (but who really knows)
+
+// WARNING
+// arrows, pagedown and pageup will move the canvas in all but the fit mode
+// you can make a keypress event and stopImediatePropagation(e) for those keys
+// or use zop(e);
+// obviously, do this after you use the keys, if you want to use those keys 
+
+var scaling = "full"; 
+var stageW = 500; // does not matter - will be overwritten in this case
+var stageH = 500;
+var largest; // watch out making things too big on mobile canvas
+var appOrientation; // watch out - orientation keyword is used by apple - sigh
+var lastOrientation; // remember for orientation change
+var stage;
+var preload;
+var progress;
+var appReady = false; // check variable - set true when ready ;-) (watch - "ready" is reserved)
+
+window.addEventListener('load', init);
+if (scaling != "none") window.addEventListener('resize', sizeCanvas);
+
+
+function init() {
+
+	// for mobile - pan to the bottom, hides the location bar
+	// need to set a delay though
+	setTimeout(function() {window.scrollTo(0, 1);}, 100); 
+	
+	if (scaling != "none") sizeCanvas();
+	stage = new createjs.Stage("myCanvas"); 
+	stage.setBounds(0,0,stageW,stageH);
+	stage.enableMouseOver(10); // if you need mouse rollover
+	createjs.Touch.enable(stage,true); // added for mobile	
+	
+	makeProgress();
+	
+	/*
+	// activate these at end to add images and sound
+	var contentPath = "content/";
+	var manifest = [{src:"logo.png", id:"logo"}, {src:"pic.png", id:"pic"}]; // array of objects
+	preload = new createjs.LoadQueue(false, contentPath); // use true if on the same server	
+	preload.installPlugin(createjs.Sound); // sound requires this plugin call
+	preload.on("progress", animateProgress); // this will update the progress
+	preload.on("complete", appName);	 // call the main code when ready	
+	preload.loadManifest(manifest);		
+	*/	
+	
+	pageChanger(); // comment this out when you have preload going
+	
+}
+
+function makeProgress() {
+	
+	progress = new createjs.Container();
+	// more code in here to make bar or text or whatever, etc.
+	// we do not animate the progress here - we do that in preloadProgress()
+	stage.addChild(progress);
+	stage.update();
+	
+}
+
+function animateProgress(e) {
+	
+	// zog("progress " + e.target.progress);	
+	// this event runs quite quickly and often
+	// e.target is the preload object in this case
+	// the progress property gives a number from 0-1 representing progress
+	// in percent we would multiply by 100
+	// we would operate on the progress object we established in makeProgress() 
+
+}
+
+var page1,page2;
+
+function pageChanger() {
+	
+	zog("Hi from PageChanger"); // change appName to the name of your app
+	
+	
+	
+	// this is where ALL the rest of the code will go - and become quite big!
+	// initial condition properties
+	// initial build functions with events 
+	// various events functions (do not forget stage.update()) 	
+	
+	
+	page1 = new createjs.Container();
+	page1.name= "page1";
+	
+	stage.addChild(page1);
+	var backing1 = new createjs.Shape();
+	//backing1.name="backing1";
+	backing1.graphics.f("yellow").r(0,0,stageW,stageH);
+	page1.addChild(backing1);
+	var currentPage = page1;
+	var ball = new createjs.Shape();
+	ball.graphics.f("red").dc(0,0,100);
+	page1.addChild(ball);
+	
+	zim.drag(ball);
+	
+	page2 = new createjs.Container();
+	page2.name="page2";
+	//stage.addChild(page2);
+	
+	var backing2 = new createjs.Shape();
+	//backing2.name="backing2";
+	backing2.graphics.f("orange").r(0,0,stageW,stageH);
+	page2.addChild(backing2);
+	
+	var transitions = {page1:page2,page2:page1};
+	
+		var swipe = new zim.Swipe(stage);
+	swipe.on("swipe",function(e)
+		{
+			zog(e.target.direction);	
+			//zog(e.target.obj.name);
+			zog(currentPage.name);
+			var newPage = transitions[currentPage.name];
+			
+			var location=0;
+			if(e.target.direction == "left")
+			{
+				newPage.x = stageW;
+				location = -stageW;
+			} else if (e.target.direction == "right")
+			{
+				newPage.x= -stageW;
+				location = stageW;
+			}
+			
+			
+			zim.animate(currentPage,{x:-stageW},700);
+			newPage.x=stageW;
+			//zim.animate(newPage,{x:0},700);
+			zim.animate(newPage,{x:0},700,null, function(){
+				stage.removeChild(currentPage);
+					currentPage=newPage;
+				});
+			//zog(newPage.name);
+			stage.addChild(newPage);
+			stage.update();
+		});
+	
+	appReady = true;
+	stage.update();	
+}
+
+window.addEventListener("keydown", function(e) {
+	if (!e) e = event;
+	// zog(e.keyCode);
+	// put key functionality here
+	
+	// end with zop(e) which will stop arrows, pgup, pgdown, spacebar from moving canvas
+	zop(e);	
+});
+
+
+
+function sizeCanvas() {
+	
+	var can = zid("myCanvas");	
+	var w = window.innerWidth;
+	var h = window.innerHeight; 	
+	var newH; 
+	var newW;	
+	
+	appOrientation = (w > h) ? "horizontal" : "vertical";
+
+	if (scaling == "fit") { 
+		// scales canvas to fit dimensions inside screen
+		if (w/h >= stageW/stageH) {
+			newH = h;
+			newW = newH*stageW/stageH;	
+		} else {
+			newW = w;
+			newH = newW*stageH/stageW;
+		}
+	} else if (scaling == "outside") { 
+		// scales canvas so screen inside dimensions
+		document.body.style.overflow = "hidden";
+		if (w/h >= stageW/stageH) {
+			newW = w;
+			newH = newW*stageH/stageW;	
+		} else {
+			newH = h;
+			newW = newH*stageW/stageH;			
+		}		
+	} else if (scaling == "full") { 
+		// does not scale canvas but sets width and height to screen
+		document.body.style.overflow = "hidden";
+		can.style.left = can.style.top = "0px";		
+		stageW = w;
+		stageH = h;			
+		if (stage) stage.setBounds(0,0,stageW,stageH);
+		fullResize();
+		return;
+	}
+	
+	can.style.width = newW + "px";
+	can.style.height = newH + "px"; 
+	
+	// horizontal center
+	can.style.left = ((w-newW)/2) + "px";
+	
+	// vertical center
+	can.style.top = ((h-newH)/2) + "px";
+}
+
+// used in full scaling mode to resize content (not needed for fit and outside modes)
+// resize layoutManagers, gridManagers, pages
+// handle orientation changes by disabling and enabling layoutManagers and pages
+// see ZIM Pages live example
+function fullResize() { // called from the sizeCanvas() function above if in full mode 
+
+	if (!appReady) return;	
+	
+	// do any custom scaling
+	// here is a guideline for using the ZIM Pages module
+	// if orientation change then swap Pages objects
+	// puff new pages and resize before puff settles ;-)
+	
+	
+	var backing1 = page1.getChildAt(0);
+	backing1.graphics.c().f("yellow").r(0,0,stageW,stageH);
+	
+	var backing2 = page1.getChildAt(0);
+	backing2.graphics.c().f("orange").r(0,0,stageW,stageH);
+	
+
+	
+	
+			
+	if (appOrientation != lastOrientation) {
+		lastOrientation = appOrientation;
+		if (appOrientation == "horizontal") {
+			// disable and enable appropriate pages and layoutManager
+		} else {
+			// disable and enable appropriate pages and layoutManager
+		}
+	} else {
+		if (appOrientation == "horizontal") {
+			// just update appropriate layoutManager			
+		} else {
+			// just update appropriate layoutManager			
+		}
+	}
+	
+	if (appOrientation == "horizontal") {
+		// resize appropriate pages (because of transition)
+	} else {
+		// resize appropriate pages (because of transition)			
+	}	
+	// resize the gridManager
+	
+	// and update the stage	
+	if (stage) stage.update();
+}
+
+function makeCanvas() {
+	// note the width and height of a canvas
+	// are separate from from the width and height styles
+	// so beware of unintentionally stretching the canvas with styles
+		
+	var canvas = document.createElement("canvas");
+	canvas.setAttribute("id", "myCanvas");
+	largest = Math.max(window.innerWidth, screen.width, window.innerHeight, screen.height);
+	// does not work on iOS6 in full screen if loading from icon unless keep canvas at device size
+	// thank you apple for this and many other days of hell	
+	if (scaling == "full") {		
+		canvas.setAttribute("width", largest);
+		canvas.setAttribute("height", largest); 
+	} else {
+		canvas.setAttribute("width", stageW);
+		canvas.setAttribute("height", stageH);		
+	}		
+	document.body.appendChild(canvas);
+}
+
+</script>
+
+
+</head>
+
+<body>
+<script>makeCanvas();</script>
+</body>
+</html>
