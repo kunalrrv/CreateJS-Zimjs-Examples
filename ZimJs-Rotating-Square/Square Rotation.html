@@ -1,0 +1,496 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Avatar</title> <!-- Dan Zen 2015 - for CreateJS and ZIM js http://zimjs.com - free to modify -->
+
+<link rel="shortcut icon" type="image/ico" href="favicon.ico" />
+
+<!-- for Google -->
+<meta name="description" content="Describe App" />
+<meta name="keywords" content="keyword 1, keyword 2" />    
+<meta name="author" content="App Creator" />
+<meta name="copyright" content="App Company" />
+
+<!-- for Facebook -->          
+<meta property="og:title" content="App Title" />
+<meta property="og:type" content="website" />
+<meta property="og:image" content="url_to-image_for_facebook" />
+<meta property="og:url" content="url_of_app" />
+<meta property="og:description" content="Describe App - shows in share" />
+
+<!-- for Twitter -->          
+<meta name="twitter:card" content="summary" /> <!-- do not edit this line (must say "summary") -->
+<meta name="twitter:title" content="App Title" />
+<meta name="twitter:description" content="Describe App - shows on Twitter" />
+<meta name="twitter:image" content="url_to-image" />
+
+<!-- for Apple -->
+<!-- found user-scalable=no worked best for full screen auto scaling -->
+<meta name="viewport" content="user-scalable=no, minimal-ui" />
+<!--<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimal-ui" />-->
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<link rel="apple-touch-icon-precomposed" href="url_to_icon_57x57" />
+
+<script>var zon = true; // true for comments from zim code</script>
+<script src="http://d309knd7es5f10.cloudfront.net/zim_1.3.js"></script>
+<style>
+	body {margin:0px; padding:0px; background-color:#000;}
+	#myCanvas {position:absolute; background-color:#DBBEF5;}
+	#myExtra {position:absolute; display:none; z-index:2;}
+</style>
+
+<!-- include the complete createJS suite
+or can go to createjs.com for individual code 
+
+EaselJS - working with Canvas - drawing and objects
+TweenJS - animation with code
+SoundJS - working with Sound
+PreloadJS - preload images to work with
+
+-->
+
+<script src="http://code.createjs.com/createjs-2014.12.12.min.js"></script>
+
+<!-- put createjs or zimjs dependent js files here -->
+
+<script>
+
+// ------------------   TOP TEMPLATE  ------------------ (APP STARTS AT START APP)
+
+// SCALING OPTIONS
+// "none"		sets canvas and stage to dimensions below and does not scale if window changes
+// "fit"		sets canvas and stage to dimensions below and scales to fit inside window size
+// "outside"	sets canvas and stage to dimensions below and scales to fit inside window size
+// "full"		sets canvas and stage to window size (canvas is actually set to screen size)  
+// for full, the stageW and stageH will be automatically set to match window size
+// for all the others, the stageW and stageH do not change and will be the values you put below
+
+// COMBINED
+// you can combine full and fit - set scaling to full 
+// then put a createjs Container with bounds set as your "workArea" 
+// then zim.fit(workArea, 0, 0, stageW, stageH);
+// all your dimensions will be relative to the workArea bounds
+// yet your content will be able to go everywhere on the screen
+// there will be no bounding edges like in fit scaling mode
+
+// WARNING
+// have found that on mobile apple in full mode 
+// we need to set the viewport to content="user-scalable=no" (but who really knows)
+
+var scaling = "full"; 
+var stageW = 500; // ignored if scaling is full
+var stageH = 500;
+var largest; // automatically set
+var appOrientation; // watch out - orientation keyword is used by apple - sigh
+var lastOrientation; // used to detect orientation change
+var cjs = createjs; // shorter namespace if desired
+var stage;
+var preload;
+var progress;
+var appReady = false; // check variable - set true when ready ;-) (watch - "ready" is reserved)
+
+window.addEventListener('load', init);
+if (scaling != "none") window.addEventListener('resize', sizeCanvas);
+
+
+function init() {
+
+	// for older mobile - pan to the bottom, hides the location bar
+	// need to set a delay though
+	setTimeout(function() {window.scrollTo(0, 1);}, 100); 
+	
+	if (scaling != "none") sizeCanvas();
+	if (scaling == "full") zil(); // keep canvas still (from arrows, scrollwheel, etc.)
+	stage = new createjs.Stage("myCanvas"); 
+	stage.setBounds(0, 0, stageW, stageH);
+	stage.enableMouseOver(10); // if you need mouse rollover
+	createjs.Touch.enable(stage,true); // added for mobile	
+	
+	makeProgress();
+	
+	/*
+	// activate these at end to add images and sound
+	var contentPath = "content/";
+	var manifest = [{src:"logo.png", id:"logo"}, {src:"pic.png", id:"pic"}]; // array of objects
+	preload = new createjs.LoadQueue(false, contentPath); // use true if on the same server	
+	preload.installPlugin(createjs.Sound); // sound requires this plugin call
+	preload.on("progress", animateProgress); // this will update the progress
+	preload.on("complete", appName);	 // call the main code when ready	
+	preload.loadManifest(manifest);		
+	*/	
+	
+	avatar(); // comment this out when you have preload going
+	
+}
+
+function makeProgress() {
+	
+	progress = new createjs.Container();
+	// more code in here to make bar or text or whatever, etc.
+	// we do not animate the progress here - we do that in preloadProgress()
+	stage.addChild(progress);
+	stage.update();
+	
+}
+
+function animateProgress(e) {
+	
+	// zog("progress " + e.target.progress);	
+	// this event runs quite quickly and often
+	// e.target is the preload object in this case
+	// the progress property gives a number from 0-1 representing progress
+	// in percent we would multiply by 100
+	// we would operate on the progress object we established in makeProgress() 
+
+}
+
+// ------------------   END TOP TEMPLATE  ------------------ 
+
+// although there are a few things to do above
+// such as set scale mode, perhaps stageW and stageH, preload things
+// and adjust the appName() function in the init() call above
+
+// ------------------      START APP      ------------------ 
+
+// app global variables here (such as layoutManager, guideManager, gridManager, pages)
+
+var tool;
+
+function avatar() {
+	
+	zog("hi from avatar"); // change appName to the name of your app
+	
+	tool = new createjs.Container();
+	stage.addChild(tool);
+		
+	var w = 200; var h = 200;  spacing = 30;
+	var avatar = new createjs.Container();
+	avatar.setBounds(0,0,w,h);
+	avatar.x = w/2;
+	avatar.y = h/2;
+	avatar.regX = w/2;
+	avatar.regY = h/2;
+	tool.addChild(avatar);
+	
+	avatar.body = new createjs.Shape();
+	avatar.body.graphics.f("purple").r(0,0,w,h);
+	avatar.body.shadow = new createjs.Shadow("#888", 3, 3, 10);
+	avatar.addChild(avatar.body);
+	
+	// create a container for all the avatar parts (except avatar.body)
+	avatar.parts = new createjs.Container();
+	avatar.addChild(avatar.parts);
+	zim.drag(avatar.parts, null, null, null, null, true); // turn on mousedowns
+	
+	var tray = new createjs.Container();
+	tray.w = avatar.getBounds().width/2;
+	tray.h = avatar.getBounds().height;
+	tray.setBounds(0,0,tray.w,tray.h);
+	tray.x = avatar.x + avatar.getBounds().width / 2 + spacing;
+	tray.y = avatar.y - avatar.getBounds().height / 2;
+	tool.addChild(tray);
+	
+	// make a backing for the tray
+	var backing = new createjs.Shape();
+	backing.graphics.f("white").r(0,0,tray.w,tray.h);
+	backing.alpha = .2;
+	tray.addChildAt(backing, 0); 
+	
+	tray.parts = new createjs.Container();
+	tray.addChild(tray.parts);
+	zim.drag(tray.parts, null, null, null, null, true);
+	
+	// make a part
+	var r = 30;
+	var gap = 10;
+	var circle = new createjs.Shape();
+	circle.graphics.f("#ff00ff").dc(0,0,r);
+	circle.startX = circle.x = tray.getBounds().width / 2;
+	circle.startY = circle.y = r + gap;
+	tray.parts.addChild(circle);	
+	
+	// make another part
+	var square = new createjs.Shape();
+	square.graphics.f("#bbac32").r(0,0,r*2,r*2);
+	square.regX = r;
+	square.regY = r;
+	square.startX = square.x = tray.getBounds().width / 2;
+	square.startY = square.y = circle.y + r*2 + gap;
+	tray.parts.addChild(square);	
+	
+	
+	tray.parts.on("mousedown", function(e) {
+		tool.addChild(tray); // bring tray to top
+		// create a new part to take the place of the old part
+		var copy = e.target.clone();
+		copy.startX = e.target.startX; // clones do not get custom properties
+		copy.startY = e.target.startY;
+		tray.parts.addChildAt(copy, 0);
+		tray.parts.addChild(e.target); // put above other parts in tray
+	});
+	
+	avatar.parts.on("mousedown", function(e) {
+		tool.addChild(avatar); // bring avatar to top
+		avatar.parts.addChild(e.target); // bring to top
+	});
+
+	tray.parts.on("pressup", checkPart);
+	avatar.parts.on("pressup", checkPart);
+	
+	function checkPart(e) {
+		zog("dropping");
+		var obj = e.target;
+		if (zim.hitTestReg(avatar.body, obj)) {
+			// transfer object to avatar frame of reference and move to avatar parts
+			var point = obj.parent.localToLocal(obj.x, obj.y, avatar.parts);
+			obj.x = point.x;
+			obj.y = point.y;
+			avatar.parts.addChild(obj);
+		} else {
+			// transfer object to parts frame of reference and animate to start
+			var point = obj.parent.localToLocal(obj.x, obj.y, tray.parts);
+			obj.x = point.x;
+			obj.y = point.y;
+			tray.parts.addChild(obj);
+			zim.move(obj, obj.startX, obj.startY, 200, null, function() {
+				tray.parts.removeChild(obj);
+				obj = null;
+			});
+		}
+		stage.update();
+	}
+	
+	// width, height, label, backingColor, backingRollColor, borderColor, borderThickness, corner, shadowColor, shadowBlur
+	var bW = w;
+	var bH = 70;
+	var saveBut = new zim.Button(bW, bH, "SAVE", null, null, null, null, 0);
+	tool.addChild(saveBut);
+	saveBut.y = avatar.y + avatar.getBounds().height / 2 + spacing;	
+	saveBut.on("click", function(e) {
+		zog("save me, please!");
+	});
+	
+	
+	var triangle = new zim.Triangle(bH,60,60,"white");
+	tool.addChild(triangle);
+	triangle.rotation = 90;
+	triangle.x = saveBut.x + saveBut.getBounds().width + spacing + triangle.getBounds().height / 2;
+	triangle.y = saveBut.y + triangle.getBounds().width / 2;
+	triangle.cursor = "pointer";
+	triangle.shadow = new createjs.Shadow("#888", 3, 3, 10);
+	triangle.on("click", rotateMe);
+	function rotateMe(e) {
+		triangle.off("click", rotateMe); // so we do not rotate again while rotating
+		var rot = avatar.rotation + 90;
+		zim.animate(avatar, {rotation:rot}, 800, "backInOut", function() {
+			triangle.on("click", rotateMe);
+		});
+	}
+	
+	zim.outline(avatar);
+	
+	
+	// keep at end of main function
+	// for the fit scale mode you will probably need to code below
+	// to scale things as the screen size varies	
+	
+	if (scaling=="full") {
+		appReady = true;
+		fullResize();
+	} else {
+		stage.update();
+	}
+}
+
+// used in full scaling mode to resize content (not needed for none, fit and outside modes)
+// resize layoutManagers, guideManagers, gridManagers, pages
+// handle orientation changes by disabling and enabling layoutManagers and pages
+// see ZIM Pages live example
+
+function fullResize() { // called from the sizeCanvas() function below if in full mode 
+
+	if (!appReady) return;	
+	
+	// do any custom scaling
+	
+	if (tool) {
+		tool.x = (stageW - tool.getBounds().width)/2;
+		tool.y = (stageH - tool.getBounds().height)/2;		
+	}
+	
+	// ZIM PAGES MODULE - here is a guideline for resizing
+	
+	// resize the guideManager
+	
+	// resize the gridManager
+	
+	// resize the layoutManager (or see Orientation Change)
+	
+	// resize the pages (or see Orientation Change)
+	
+	
+	// ORIENTATION CHANGE	
+	// if needing to switch pages and layouts for orientation change
+	// then use the following	
+	if (appOrientation != lastOrientation) { // new orientation
+		lastOrientation = appOrientation;
+		if (appOrientation == "horizontal") {
+			// disable and enable appropriate pages and layoutManager
+		} else {
+			// disable and enable appropriate pages and layoutManager
+		}
+	} else { // just a size change
+		if (appOrientation == "horizontal") {
+			// resize appropriate layoutManager			
+		} else {
+			// resize appropriate layoutManager			
+		}
+	}	
+	if (appOrientation == "horizontal") {
+		// resize appropriate pages
+	} else {
+		// resize appropriate pages		
+	}	
+	
+
+	// EXTRA HTML CONTENT
+	
+	// resize any extra HTML content like input fields
+	// I had some problems scaling DOMElement so here is what I did:
+	
+	// this code would go down in your HTML
+	// you may want to display:none initially
+	// and once your app is ready and resized, display:block 
+	// or store all the input fields in a div and set display:none on that
+	// as we did with the myExtra div (so display:block myExtra when ready)
+	// <input type="text" width="400" id="fieldID" />
+	
+	// this code would go where you make your content:
+	// var dField = new cjs.DOMElement(zid("fieldID"));
+	// stage.addChild(dField);
+	// dField.alpha = 0; // ready field for tween
+	// var textShape = new createjs.Shape;
+	// textShape.graphics.f("white").r(0,0,200,50); // or whatever
+	// textShape.setBounds(0,0,200,50);
+	// and add this to the content - position and scale it, etc. 
+	
+	// this code would go here in the scaling function:
+	// get the rectangle of the textShape relative to the stage
+	// var b = zim.boundsToGlobal(textShape); // will need to handle scope of textShape
+	// and position and scale the HTML input tag to those bounds
+	// var field = zss("fieldID");
+	// field.left = (b.x)+"px";
+	// field.top = (b.y)+"px";	
+	// field.width = (b.width)+"px";
+	// field.fontSize = (b.height/2)+"px";
+	// note we let the HTML figure out the height of the rectangle
+	// based in a tweaked fontSize scale
+	
+	// then finally, when you are ready to show your input field
+	// use this code to fade the text in and similar code to fade out
+	// zim.animate(dField, {alpha:1}, 400); 
+	// anytime you want to know what is in your text field
+	// use zid("fieldID").value
+	// the Dan Zen Pieces app uses this technique http://pieces.mobi
+	
+	// and update the stage	
+	if (stage) stage.update();
+}
+
+
+// ------------------       END APP      ------------------ 
+
+
+
+// ------------------   BOTTOM TEMPLATE  ------------------ 
+
+// should not have to do anything below here
+// unless you need HTML code (such as input fields)
+
+function sizeCanvas() {
+	
+	var can = zid("myCanvas");	
+	var w = window.innerWidth;
+	var h = window.innerHeight; 	
+	var newH; 
+	var newW;	
+	
+	appOrientation = (w > h) ? "horizontal" : "vertical";
+
+	if (scaling == "fit") { 
+		// scales canvas to fit dimensions inside screen
+		if (w/h >= stageW/stageH) {
+			newH = h;
+			newW = newH*stageW/stageH;	
+		} else {
+			newW = w;
+			newH = newW*stageH/stageW;
+		}
+	} else if (scaling == "outside") { 
+		// scales canvas so screen inside dimensions
+		document.body.style.overflow = "hidden";
+		if (w/h >= stageW/stageH) {
+			newW = w;
+			newH = newW*stageH/stageW;	
+		} else {
+			newH = h;
+			newW = newH*stageW/stageH;			
+		}		
+	} else if (scaling == "full") { 
+		// does not scale canvas but sets width and height to screen
+		document.body.style.overflow = "hidden";
+		can.style.left = can.style.top = "0px";		
+		stageW = w;
+		stageH = h;			
+		if (stage) stage.setBounds(0,0,stageW,stageH);
+		fullResize();
+		return;
+	}
+	
+	can.style.width = newW + "px";
+	can.style.height = newH + "px"; 
+	
+	// horizontal center
+	can.style.left = ((w-newW)/2) + "px";
+	
+	// vertical center
+	can.style.top = ((h-newH)/2) + "px";
+	
+	// may need to resize any extra HTML content (see fullResize() above for example)
+}
+
+
+function makeCanvas() {
+	// note the width and height of a canvas
+	// are separate from from the width and height styles
+	// so beware of unintentionally stretching the canvas with styles
+		
+	var canvas = document.createElement("canvas");
+	canvas.setAttribute("id", "myCanvas");
+	largest = Math.max(window.innerWidth, screen.width, window.innerHeight, screen.height);
+	// does not work on iOS6 in full screen if loading from icon unless keep canvas at device size
+	// thank you apple for this and many other days of hell	
+	if (scaling == "full") {		
+		canvas.setAttribute("width", largest);
+		canvas.setAttribute("height", largest); 
+	} else {
+		canvas.setAttribute("width", stageW);
+		canvas.setAttribute("height", stageH);		
+	}		
+	document.body.appendChild(canvas);
+}
+
+</script>
+
+
+</head>
+
+<body>
+<script>makeCanvas();</script>
+<div id="myExtra">
+<input type="text" width="400" id="fieldID" />
+</div>
+</body>
+</html>
