@@ -4,3 +4,4 @@ ZimJS createed By Dan Zen has made some features easier to use and also dont hav
 
 The list of examples are<br/>
 1) Rotating Square Using ZimJS & CreateJS
+2) Ball Moving straight using ZimJs, Created different JS file for the operation
