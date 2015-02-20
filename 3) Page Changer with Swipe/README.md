@@ -1,6 +1,6 @@
-# ZimJs-Ball Moving Straight
+# ZimJs-Page Changer
 
 Tutorial Created using ZimJs and CreateJS.
-Used a separate JS file to create function for the ball to move straight.
-Creates random number which can randomize the size of the ball every time you refresh.
-Also randomizes the speed when you refresh.
+Page changer created using Canvas <br/>
+This is created on whole canvas and uses wipe to change from page to page.<br/>
+This is a simple example on how to change the page using swipe on a canvas.<br/>
